@@ -392,6 +392,36 @@ Alternatively, it is possible to use Apache with mod_proxy_http to pass the requ
 
 **It is strongly recommended to allow access to `/(admin|overview|alt-login)` ONLY from trusted subnets.**
 
+### Optional: Shibboleth SSO for the Django admin interface
+
+By default, `/admin/` uses Django's own username/password login form, even if
+Shibboleth is configured for the rest of the site. If you would rather have
+staff log in to `/admin/` via your existing Shibboleth SSO session, you can
+protect that location the same way as `/login` above:
+
+	<Location /admin>
+		AuthType shibboleth
+		ShibRequireSession On
+		ShibUseHeaders On
+		require valid-user
+	</Location>
+
+DjNRO ships with `djangobackends.admin_shib_middleware.ShibAdminAutoLoginMiddleware`
+(enabled by default in `MIDDLEWARE`) which reads the Shibboleth attributes for
+requests under `/admin/` and establishes the Django session automatically, so
+staff aren't shown the login form a second time after SSO. It only logs in
+users that already exist and are active; it never creates new accounts or
+grants staff/admin permissions, so a user must still have `is_staff` set
+(e.g. via `/admin/accounts/user/`) before they can do anything useful once
+logged in. If the Shibboleth attributes are absent — e.g. before you protect
+`/admin` at the webserver level, as above — this middleware does nothing and
+the normal login form is shown, so it is safe to leave enabled either way.
+
+**If you protect `/admin` with Shibboleth as above, make sure any local/non-Shibboleth
+superuser accounts (e.g. one created with `createsuperuser` for initial setup)
+have another way to reach the login form, since Apache will block the request
+before Django ever sees it.**
+
 Once you are done, restart apache.
 
 ## Fetch KML
