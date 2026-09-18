@@ -953,8 +953,47 @@ def admins(request):
     return render_with_base_ctx(
         request,
         'edumanage/admins.html',
-        context={'admins': other_admins}
+        context={
+            'admins': other_admins,
+            'allow_admin_removal': settings.ALLOW_ADMIN_REMOVAL,
+        }
     )
+
+
+@login_required
+@social_active_required
+@never_cache
+def del_admin(request):
+    if request.method != 'GET':
+        return HttpResponseBadRequest()
+    resp = {}
+    if not settings.ALLOW_ADMIN_REMOVAL:
+        resp['error'] = "Admin removal is not enabled"
+        return HttpResponse(json.dumps(resp), content_type='application/json')
+    user = request.user
+    req_data = request.GET.copy()
+    admin_pk = req_data.get('admin_pk')
+    try:
+        profile = user.userprofile
+        institution = profile.institution
+    except UserProfile.DoesNotExist:
+        resp['error'] = "Could not remove admin. Not enough rights"
+        return HttpResponse(json.dumps(resp), content_type='application/json')
+    if str(admin_pk) == str(profile.pk):
+        resp['error'] = "You cannot remove yourself"
+        return HttpResponse(json.dumps(resp), content_type='application/json')
+    try:
+        target = UserProfile.objects.get(pk=admin_pk, institution=institution)
+    except UserProfile.DoesNotExist:
+        resp['error'] = "Could not get admin or you have no rights to remove them"
+        return HttpResponse(json.dumps(resp), content_type='application/json')
+    if UserProfile.objects.filter(institution=institution).count() <= 1:
+        resp['error'] = "Could not remove admin. " \
+            "It is the only admin left for this institution."
+        return HttpResponse(json.dumps(resp), content_type='application/json')
+    target.delete()
+    resp['success'] = "Admin successfully removed"
+    return HttpResponse(json.dumps(resp), content_type='application/json')
 
 
 @login_required
