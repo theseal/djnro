@@ -50,6 +50,7 @@ urlpatterns = [
     path("manage/contacts/edit/<int:contact_pk>/", edumanage.views.add_contact, name="edit-contacts"),
     path("manage/contacts/edit/", edumanage.views.add_contact, name="edit-contacts"),
     path("manage/contacts/del/", edumanage.views.del_contact, name="del-contact"),
+    path("manage/admins/", edumanage.views.admins, name="admins"),
     path("manage/adduser/", edumanage.views.adduser, name="adduser"),
     path("manage/instrealmsmon/", edumanage.views.instrealmmon, name="instrealmmon"),
     path("manage/instrealmsmon/edit/<int:instrealmmon_pk>/", edumanage.views.add_instrealmmon, name="edit-instrealmmon"),

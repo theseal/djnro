@@ -936,6 +936,30 @@ def contacts(request):
 @login_required
 @social_active_required
 @never_cache
+def admins(request):
+    user = request.user
+    try:
+        profile = user.userprofile
+        inst = profile.institution
+    except UserProfile.DoesNotExist:
+        return HttpResponseRedirect(reverse("manage"))
+    try:
+        inst.institutiondetails
+    except InstitutionDetails.DoesNotExist:
+        return HttpResponseRedirect(reverse("manage"))
+    other_admins = UserProfile.objects.filter(
+        institution=inst
+    ).exclude(pk=profile.pk).select_related('user')
+    return render_with_base_ctx(
+        request,
+        'edumanage/admins.html',
+        context={'admins': other_admins}
+    )
+
+
+@login_required
+@social_active_required
+@never_cache
 def add_contact(request, contact_pk=None):
     user = request.user
     edit = False
@@ -1382,6 +1406,7 @@ def base_response(request):
     instrealms = []
     instcontacts = []
     contacts = []
+    admins = []
     institution = False
     institution_exists = False
     institution_canhaveservicelocs = False
@@ -1403,6 +1428,9 @@ def base_response(request):
         ])
         contacts = Contact.objects.filter(pk__in=instcontacts)
         instrealmmons = InstRealmMon.objects.filter(realm__instid=institution)
+        admins = UserProfile.objects.filter(
+            institution=institution
+        ).exclude(pk=profile.pk)
     except:
         pass
     try:
@@ -1420,6 +1448,7 @@ def base_response(request):
         'realms_num': len(instrealms),
         'contacts_num': len(contacts),
         'monrealms_num': len(instrealmmons),
+        'admins_num': len(admins),
         'institution': institution,
         'institutiondetails': instututiondetails,
         'institution_exists': institution_exists,
