@@ -991,7 +991,7 @@ def del_admin(request):
         resp['error'] = "Could not remove admin. " \
             "It is the only admin left for this institution."
         return HttpResponse(json.dumps(resp), content_type='application/json')
-    target.delete()
+    target.user.delete()
     resp['success'] = "Admin successfully removed"
     return HttpResponse(json.dumps(resp), content_type='application/json')
 
