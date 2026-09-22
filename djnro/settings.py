@@ -121,6 +121,7 @@ MIDDLEWARE = (
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'djangobackends.admin_shib_middleware.ShibAdminAutoLoginMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     # Simple clickjacking protection:
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
